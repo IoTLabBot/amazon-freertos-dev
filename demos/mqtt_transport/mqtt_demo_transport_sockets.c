@@ -259,10 +259,6 @@ static int32_t connectToServerWithBroker( NetworkContext_t * pNetworkContext,
     SocketsConfig.disableSni = pAfrCredentials->disableSni;
     SocketsConfig.pRootCa = pAfrCredentials->pRootCa;
     SocketsConfig.rootCaSize = pAfrCredentials->rootCaSize;
-    SocketsConfig.pClientCert = pAfrCredentials->pClientCert;
-    SocketsConfig.clientCertSize = pAfrCredentials->clientCertSize;
-    SocketsConfig.pPrivateKey = pAfrCredentials->pPrivateKey;
-    SocketsConfig.privateKeySize = pAfrCredentials->privateKeySize;
     SocketsConfig.sendTimeoutMs = DEMO_TRANSPORT_SND_TIMEOUT_MS;
     SocketsConfig.recvTimeoutMs = DEMO_TRANSPORT_RCV_TIMEOUT_MS;
     serverInfo.pHostName = pServerInfo->pHostName;
@@ -275,7 +271,7 @@ static int32_t connectToServerWithBroker( NetworkContext_t * pNetworkContext,
     }
     else
     {
-        TransportSocketStatus = SecureSocketsTrasnport_Connect( pNetworkContext,
+        TransportSocketStatus = SecureSocketsTransport_Connect( pNetworkContext,
                                                                 &serverInfo,
                                                                 &SocketsConfig );
         if( TransportSocketStatus != TRANSPORT_SOCKET_STATUS_SUCCESS )
@@ -300,7 +296,7 @@ static int32_t disconnectToServerWithBroker( NetworkContext_t * pNetworkContext 
     }
     else
     {
-        TransportSocketStatus = SecureSocketsTrasnport_Disconnect( pNetworkContext );
+        TransportSocketStatus = SecureSocketsTransport_Disconnect( pNetworkContext );
         if( TransportSocketStatus != TRANSPORT_SOCKET_STATUS_SUCCESS )
         {
             returnStatus = EXIT_FAILURE;
@@ -380,8 +376,8 @@ static int32_t initializeMqtt( MQTTContext_t * pMqttContext,
     MQTTFixedBuffer_t networkBuffer = { .pBuffer = NULL };
     TransportInterface_t transportInterface =
     {
-        .send            = SecureSocketsTrasnport_Send,
-        .recv            = SecureSocketsTrasnport_Recv,
+        .send            = SecureSocketsTransport_Send,
+        .recv            = SecureSocketsTransport_Recv,
         .pNetworkContext = pNetworkContext
     };
 

@@ -22,11 +22,24 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @file transport_secure_sockets.h
+ * @brief Secure Sockets based API for transport interface implementation.
+ */
+
 #ifndef TRANSPORT_SECURE_SOCKETS_H
 #define TRANSPORT_SECURE_SOCKETS_H
 
-/* standard includes. */
-#include <stdbool.h>
+/* bool is defined in only C99+. */
+#if defined( __cplusplus ) || ( defined( __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901L ) )
+    #include <stdbool.h>
+#elif !defined( bool ) && !defined( false ) && !defined( true )
+    #define bool     int8_t
+    #define false    ( int8_t ) 0
+    #define true     ( int8_t ) 1
+#endif
+/** @endcond */
+
 /* Transport interface include. */
 #include "transport_interface.h"
 
@@ -42,7 +55,9 @@
     #define LIBRARY_LOG_LEVEL    LOG_ERROR
 #endif
 
+/* Logging implementation header include. */
 #include "logging_stack.h"
+
 
 /**
  * @brief TCP, TLS Connect / Disconnect return status.
@@ -53,7 +68,7 @@ typedef enum TransportSocketStatus
     TRANSPORT_SOCKET_STATUS_INVALID_PARAMETER,   /**< At least one parameter was invalid. */
     TRANSPORT_SOCKET_STATUS_INSUFFICIENT_MEMORY, /**< Insufficient memory required to establish connection. */
     TRANSPORT_SOCKET_STATUS_INVALID_CREDENTIALS, /**< Provided credentials were invalid. */
-    TRANSPORT_SOCKET_STATUS_API_ERROR,           /**< A call to a system API resulted in an internal error. */
+    TRANSPORT_SOCKET_STATUS_INTERNAL_ERROR,      /**< A call to a system API resulted in an internal error. */
     TRANSPORT_SOCKET_STATUS_DNS_FAILURE,         /**< Resolving hostname of the server failed. */
     TRANSPORT_SOCKET_STATUS_CONNECT_FAILURE      /**< Initial connection to the server failed. */
 } TransportSocketStatus_t;
@@ -64,7 +79,7 @@ typedef enum TransportSocketStatus
  */
 typedef struct ServerInfo
 {
-    const char * pHostName; /**< @brief Server host name. */
+    const char * pHostName; /**< @brief Server host name. Must be NULL-terminated. */
     size_t hostNameLength;  /**< @brief Length of the server host name. */
     uint16_t port;          /**< @brief Server port in host-order. */
 } ServerInfo_t;
@@ -76,9 +91,9 @@ typedef struct ServerInfo
  */
 typedef struct SocketsConfig
 {
-    bool enableTls;           /**< @brief Whether require TLS for the transport. */
-    uint32_t sendTimeoutMs;   /**< @brief Timeout for transport send. */
-    uint32_t recvTimeoutMs;   /**< @brief Timeout for transport recv. */
+    bool enableTls;         /**< @brief Whether require TLS for the transport. */
+    uint32_t sendTimeoutMs; /**< @brief Timeout for transport send. */
+    uint32_t recvTimeoutMs; /**< @brief Timeout for transport recv. */
 
     /**
      * @brief Set this to a non-NULL value to use ALPN.
@@ -110,17 +125,13 @@ typedef struct SocketsConfig
      */
     size_t maxFragmentLength;
 
-    const char * pRootCa;     /**< @brief String representing a trusted server root certificate. */
-    size_t rootCaSize;        /**< @brief Size associated with #IotNetworkCredentials_t.pRootCa. */
-    const char * pClientCert; /**< @brief String representing the client certificate. */
-    size_t clientCertSize;    /**< @brief Size associated with #IotNetworkCredentials_t.pClientCert. */
-    const char * pPrivateKey; /**< @brief String representing the client certificate's private key. */
-    size_t privateKeySize;    /**< @brief Size associated with #IotNetworkCredentials_t.pPrivateKey. */
+    const char * pRootCa; /**< @brief String representing a trusted server Root CA certificate. */
+    size_t rootCaSize;    /**< @brief Size associated with #IotNetworkCredentials_t.pRootCa. */
 } SocketsConfig_t;
 
 
 /**
- * @brief Sets up a TLS session on top of a TCP connection using the Secure Sockets API.
+ * @brief Sets up a TCP only connection or a TLS session on top of a TCP connection with Secure Sockets API.
  *
  * @param[out] pNetworkContext The output parameter to return the created network context.
  * @param[in] pServerInfo Server connection info.
@@ -128,10 +139,10 @@ typedef struct SocketsConfig
  *
  * @return #TRANSPORT_SOCKET_STATUS_SUCCESS on success;
  *         #TRANSPORT_SOCKET_STATUS_INVALID_PARAMETER, #TRANSPORT_SOCKET_STATUS_INSUFFICIENT_MEMORY,
- *         #TRANSPORT_SOCKET_STATUS_INVALID_CREDENTIALS, #TRANSPORT_SOCKET_STATUS_API_ERROR,
+ *         #TRANSPORT_SOCKET_STATUS_INVALID_CREDENTIALS, #TRANSPORT_SOCKET_STATUS_INTERNAL_ERROR,
  *         #TRANSPORT_SOCKET_STATUS_DNS_FAILURE, #TRANSPORT_SOCKET_STATUS_CONNECT_FAILURE on failure.
  */
-TransportSocketStatus_t SecureSocketsTrasnport_Connect( NetworkContext_t * pNetworkContext,
+TransportSocketStatus_t SecureSocketsTransport_Connect( NetworkContext_t * pNetworkContext,
                                                         const ServerInfo_t * pServerInfo,
                                                         const SocketsConfig_t * pSocketsConfig );
 
@@ -142,9 +153,9 @@ TransportSocketStatus_t SecureSocketsTrasnport_Connect( NetworkContext_t * pNetw
  *             clean the created network context.
  *
  * @return #TRANSPORT_SOCKET_STATUS_SUCCESS on success;
- *         #TRANSPORT_SOCKET_STATUS_INVALID_PARAMETER, #TRANSPORT_SOCKET_STATUS_API_ERROR on failure.
+ *         #TRANSPORT_SOCKET_STATUS_INVALID_PARAMETER, #TRANSPORT_SOCKET_STATUS_INTERNAL_ERROR on failure.
  */
-int32_t SecureSocketsTrasnport_Disconnect( const NetworkContext_t * pNetworkContext );
+TransportSocketStatus_t SecureSocketsTransport_Disconnect( const NetworkContext_t * pNetworkContext );
 
 
 /**
@@ -157,9 +168,11 @@ int32_t SecureSocketsTrasnport_Disconnect( const NetworkContext_t * pNetworkCont
  * @param[out] pBuffer Buffer to receive network data into.
  * @param[in] bytesToRecv Number of bytes requested from the network.
  *
- * @return Number of bytes received if successful; negative value on error.
+ * @return Number of bytes (> 0) received if successful;
+ *         0 if the socket times out without reading any bytes;
+ *         negative value on error.
  */
-int32_t SecureSocketsTrasnport_Recv( NetworkContext_t * pNetworkContext,
+int32_t SecureSocketsTransport_Recv( const NetworkContext_t * pNetworkContext,
                                      void * pBuffer,
                                      size_t bytesToRecv );
 
@@ -175,7 +188,7 @@ int32_t SecureSocketsTrasnport_Recv( NetworkContext_t * pNetworkContext,
  *
  * @return Number of bytes sent if successful; negative value on error.
  */
-int32_t SecureSocketsTrasnport_Send( NetworkContext_t * pNetworkContext,
+int32_t SecureSocketsTransport_Send( const NetworkContext_t * pNetworkContext,
                                      const void * pMessage,
                                      size_t bytesToSend );
 
