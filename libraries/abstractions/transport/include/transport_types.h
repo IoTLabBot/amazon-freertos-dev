@@ -19,18 +19,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TRANSPORT_CONFIG_H
-#define TRANSPORT_CONFIG_H
-#include "iot_secure_sockets.h"
-#include "transport_types.h"
+#ifndef TRANSPORT_TYPES_H
+#define TRANSPORT_TYPES_H
 
-struct NetworkContext
-{
-    MqttNetworkContext_t * pMqttNetworkContext;
-    MqttBleNetworkContext_t * pBleContext;
-    Socket_t tcpSocket;
-};
+struct MqttBleNetworkContext;
+typedef struct MqttBleNetworkContext MqttBleNetworkContext_t;
 
-/************ End of logging configuration ****************/
+struct MqttNetworkContext;
+typedef struct MqttNetworkContext MqttNetworkContext_t;
 
-#endif /* ifndef TRANSPORT_CONFIG_H */
+#endif /* ifndef TRANSPORT_TYPES_H */
