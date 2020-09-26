@@ -36,7 +36,7 @@ typedef struct MqttNetworkContext MqttNetworkContext_t ;
 
 struct NetworkContext
 {
-	MqttNetworkContext_t * pMqttNetworkContext;
+    MqttNetworkContext_t * pMqttNetworkContext;
     MqttBleNetworkContext_t * pBleContext;
     Socket_t tcpSocket;
 };
