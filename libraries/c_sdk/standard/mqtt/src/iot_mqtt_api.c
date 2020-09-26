@@ -830,7 +830,7 @@ static int32_t transportSend( NetworkContext_t * pNetworkContext,
 
     IotMqtt_Assert( pNetworkContext != NULL );
     IotMqtt_Assert( pMessage != NULL );
-    MqttNetworkContext_t * pMqttNetowkrContext = ( MqttNetworkContext_t * ) pNetworkContext->pContext;
+    MqttNetworkContext_t * pMqttNetowkrContext = pNetworkContext->pMqttNetworkContext;
     /* Sending the bytes on the network using Network Interface. */
     bytesSend = pMqttNetowkrContext->pNetworkInterface->send( pMqttNetowkrContext->pNetworkConnection, ( const uint8_t * ) pMessage, bytesToSend );
 
@@ -1086,8 +1086,8 @@ IotMqttError_t IotMqtt_Connect( const IotMqttNetworkInfo_t * pNetworkInfo,
         connToContext[ contextIndex ].mqttConnection = newMqttConnection;
 
         /* Assigning the Network Context to be used by this MQTT Context. */
-        connToContext[ contextIndex ].networkContext.pContext = &MqttContext;
-        pMqttNetowkrContext = ( MqttNetworkContext_t * ) connToContext[ contextIndex ].networkContext.pContext;
+        connToContext[ contextIndex ].networkContext.pMqttNetworkContext = &MqttContext;
+        pMqttNetowkrContext = connToContext[ contextIndex ].networkContext.pMqttNetworkContext;
         pMqttNetowkrContext->pNetworkConnection = pNetworkConnection;
         pMqttNetowkrContext->pNetworkInterface = pNetworkInfo->pNetworkInterface;
 

@@ -158,7 +158,7 @@ static MqttBleNetworkContext_t mqttBleNetworkContext;
 /**
  * @brief Network context to store MqttBleNetworkContext_t.
  */
-static NetworkContext_t xContext = { .pContext = &mqttBleNetworkContext };
+static NetworkContext_t xContext = { .pBleContext = &mqttBleNetworkContext };
 
 /**
  * @brief Flag to mark if the channel has been disconnected at all
@@ -183,7 +183,7 @@ static void demoCallback( IotBleDataTransferChannelEvent_t event,
                           void * context )
 {
     MQTTStatus_t acceptCode;
-    MqttBleNetworkContext_t * pMqttBleNetworkContext = xContext.pContext;
+    MqttBleNetworkContext_t * pMqttBleNetworkContext = xContext.pBleContext;
     /* Unused parameters. */
     ( void ) pChannel;
     ( void ) context;
@@ -217,7 +217,7 @@ static void demoCallback( IotBleDataTransferChannelEvent_t event,
 static MQTTStatus_t demoInitChannel( void )
 {
     MQTTStatus_t status = MQTTSuccess;
-    MqttBleNetworkContext_t * pMqttBleNetworkContext = xContext.pContext;
+    MqttBleNetworkContext_t * pMqttBleNetworkContext = xContext.pBleContext;
     /* Must initialize the channel, context must contain the buffer and buf size at this point. */
     IotBleMqttTransportInit( &xContext );
 
@@ -716,7 +716,7 @@ MQTTStatus_t RunMQTTTransportDemo( void )
     const uint16_t maxDemoIterations = 5U;
     bool publishPacketSent = false;
 
-    xContext.pContext = &mqttBleNetworkContext;
+    xContext.pBleContext = &mqttBleNetworkContext;
     /***
      * Memory that will contain the incoming packet queue used by the transport code.
      * Here we use static memory, but dynamic is OK too.

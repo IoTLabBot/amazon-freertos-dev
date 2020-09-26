@@ -35,7 +35,7 @@
 /* TCP/IP abstraction includes. */
 #include "iot_secure_sockets.h"
 #include "transport_secure_sockets.h"
-
+#include "transport_config.h"
 
 /*-----------------------------------------------------------*/
 
@@ -83,7 +83,6 @@ static int32_t tlsSetup( const SocketsConfig_t * pSocketsConfig,
                          const char * pHostName,
                          size_t hostnameLength );
 
-
 /*-----------------------------------------------------------*/
 
 int32_t SecureSocketsTransport_Send( const NetworkContext_t * pNetworkContext,
@@ -100,14 +99,14 @@ int32_t SecureSocketsTransport_Send( const NetworkContext_t * pNetworkContext,
                     pMessage, bytesToSend, pNetworkContext ) );
         bytesSent = SOCKETS_EINVAL;
     }
-    else if( ( pNetworkContext != NULL ) && ( pNetworkContext->pContext == NULL ) )
+    else if( ( pNetworkContext != NULL ) && ( pNetworkContext->tcpSocket == NULL ) )
     {
-        LogError( ( "Invalid parameter: pNetworkContext->pContext cannot be NULL." ) );
+        LogError( ( "Invalid parameter: pNetworkContext->tcpSocket cannot be NULL." ) );
         bytesSent = SOCKETS_EINVAL;
     }
     else
     {
-        bytesSent = SOCKETS_Send( ( Socket_t ) pNetworkContext->pContext,
+        bytesSent = SOCKETS_Send( pNetworkContext->tcpSocket,
                                   pMessage,
                                   bytesToSend,
                                   0 );
@@ -150,14 +149,14 @@ int32_t SecureSocketsTransport_Recv( const NetworkContext_t * pNetworkContext,
                     pBuffer, bytesToRecv, pNetworkContext ) );
         bytesReceived = SOCKETS_EINVAL;
     }
-    else if( ( pNetworkContext != NULL ) && ( pNetworkContext->pContext == NULL ) )
+    else if( ( pNetworkContext != NULL ) && ( pNetworkContext->tcpSocket == NULL ) )
     {
-        LogError( ( "Invalid parameter: pNetworkContext->pContext cannot be NULL." ) );
+        LogError( ( "Invalid parameter: pNetworkContext->tcpSocket cannot be NULL." ) );
         bytesReceived = SOCKETS_EINVAL;
     }
     else
     {
-        bytesReceived = SOCKETS_Recv( ( Socket_t ) pNetworkContext->pContext,
+        bytesReceived = SOCKETS_Recv( pNetworkContext->tcpSocket,
                                       pRecvBuffer,
                                       bytesToRecv,
                                       0 );
@@ -421,7 +420,7 @@ static TransportSocketStatus_t establishConnect( NetworkContext_t * pNetworkCont
     if( returnStatus == TRANSPORT_SOCKET_STATUS_SUCCESS )
     {
         /* Set the socket in the network context. */
-        pNetworkContext->pContext = tcpSocket;
+        pNetworkContext->tcpSocket = tcpSocket;
     }
     else
     {
@@ -482,7 +481,7 @@ TransportSocketStatus_t SecureSocketsTransport_Disconnect( const NetworkContext_
     if( pNetworkContext != NULL )
     {
         /* Call Secure Sockets shutdown function to close connection. */
-        transportSocketStatus = SOCKETS_Shutdown( ( Socket_t ) pNetworkContext->pContext, SOCKETS_SHUT_RDWR );
+        transportSocketStatus = SOCKETS_Shutdown( pNetworkContext->tcpSocket, SOCKETS_SHUT_RDWR );
 
         if( transportSocketStatus != ( int32_t ) SOCKETS_ERROR_NONE )
         {
@@ -492,7 +491,7 @@ TransportSocketStatus_t SecureSocketsTransport_Disconnect( const NetworkContext_
         else
         {
             /* Call Secure Sockets close function to close socket. */
-            transportSocketStatus = SOCKETS_Close( ( Socket_t ) pNetworkContext->pContext );
+            transportSocketStatus = SOCKETS_Close( pNetworkContext->tcpSocket );
 
             if( transportSocketStatus != ( int32_t ) SOCKETS_ERROR_NONE )
             {

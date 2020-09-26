@@ -28,5 +28,6 @@ afr_module_include_dirs(
     PUBLIC
        "${inc_dir}"
        "${src_dir}"
+       "${AFR_MODULES_C_SDK_DIR}/standard/logging_stack/"
 )
 

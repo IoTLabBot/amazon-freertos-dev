@@ -37,13 +37,13 @@
 #include "types/iot_platform_types.h"
 
 
-typedef struct MqttBleNetworkContext
+struct MqttBleNetworkContext
 {
     IotBleDataTransferChannel_t * pChannel;
     IotSemaphore_t isReady;
     void * buf;
     size_t bufSize;
-} MqttBleNetworkContext_t;
+};
 
 /**
  * @brief Initiailzes the Circular buffer to store the received data

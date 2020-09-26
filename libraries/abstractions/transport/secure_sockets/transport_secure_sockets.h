@@ -43,6 +43,8 @@
 /* Transport interface include. */
 #include "transport_interface.h"
 
+
+
 /* Include header that defines log levels. */
 #include "logging_levels.h"
 
@@ -57,7 +59,6 @@
 
 /* Logging implementation header include. */
 #include "logging_stack.h"
-
 
 /**
  * @brief TCP, TLS Connect / Disconnect return status.

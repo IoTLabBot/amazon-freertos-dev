@@ -46,6 +46,7 @@
 
 /* Transport interface include*/
 #include "transport_interface.h"
+#include "transport_config.h"
 
 /* MQTT include. */
 #include "mqtt.h"
@@ -564,7 +565,7 @@ int RunMQTTTransportDemoSocekts( bool awsIotMqttMode,
     int32_t returnStatus = EXIT_SUCCESS;
     MQTTContext_t mqttContext = { .callbacks = NULL };
     MQTTStatus_t mqttStatus = MQTTSuccess;
-    NetworkContext_t networkContext = { .pContext = NULL };
+    NetworkContext_t networkContext = { .tcpSocket = NULL };
 
 
     /* pUnused is un used in this demo, we are not using the IotNetworkInterface_t

@@ -27,6 +27,7 @@
 #include "iot_ble_mqtt_serialize.h"
 #include "mqtt_lightweight.h"
 #include "transport_interface.h"
+#include "transport_config.h"
 
 /*-----------------------------------------------------------*/
 
@@ -166,15 +167,15 @@ StaticStreamBuffer_t xStreamBufferStruct;
 /*-----------------------------------------------------------*/
 
 
-bool IotBleMqttTransportInit( const NetworkContext_t * pContext )
+bool IotBleMqttTransportInit( const NetworkContext_t * pNetworkContext )
 {
     bool status = true;
     MqttBleNetworkContext_t * pMqttBleNetworkContext = NULL;
 
 
-    if( ( pContext != NULL ) && ( pContext->pContext != NULL ) )
+    if( ( pNetworkContext != NULL ) && ( pNetworkContext->pBleContext != NULL ) )
     {
-        pMqttBleNetworkContext = ( MqttBleNetworkContext_t * ) pContext->pContext;
+        pMqttBleNetworkContext = pNetworkContext->pBleContext;
         streamBuffer = xStreamBufferCreateStatic( pMqttBleNetworkContext->bufSize, 1, pMqttBleNetworkContext->buf, &xStreamBufferStruct );
 
         if( streamBuffer == NULL )
@@ -856,7 +857,7 @@ static MQTTStatus_t handleIncomingPingresp( MQTTPacketInfo_t * packet,
  * @param[in] buf A pointer to a buffer containing data to be sent out.
  * @param[in] bytesToWrite number of bytes to write from the buffer.
  */
-int32_t IotBleMqttTransportSend( NetworkContext_t * pContext,
+int32_t IotBleMqttTransportSend( NetworkContext_t * pNetworkContext,
                                  void * buf,
                                  size_t bytesToWrite )
 {
@@ -869,9 +870,9 @@ int32_t IotBleMqttTransportSend( NetworkContext_t * pContext,
     /* The send function returns the CBOR bytes written, so need to return 0 or full amount of bytes sent. */
     int32_t MQTTBytesWritten = ( int32_t ) bytesToWrite;
 
-    if( ( pContext != NULL ) && ( pContext->pContext != NULL ) )
+    if( ( pNetworkContext != NULL ) && ( pNetworkContext->pBleContext != NULL ) )
     {
-        pMqttBleNetworkContext = ( MqttBleNetworkContext_t * ) pContext->pContext;
+        pMqttBleNetworkContext = pNetworkContext->pBleContext;
 
         switch( packetType )
         {
@@ -950,7 +951,7 @@ int32_t IotBleMqttTransportSend( NetworkContext_t * pContext,
     return MQTTBytesWritten;
 }
 
-MQTTStatus_t IotBleMqttTransportAcceptData( const NetworkContext_t * pContext )
+MQTTStatus_t IotBleMqttTransportAcceptData( const NetworkContext_t * pNetworkContext )
 {
     MQTTStatus_t status = MQTTSuccess;
     MQTTPacketInfo_t packet;
@@ -962,9 +963,9 @@ MQTTStatus_t IotBleMqttTransportAcceptData( const NetworkContext_t * pContext )
     buffer.pBuffer = sharedBuffer;
     buffer.size = SIZE_OF_SUB_ACK;
 
-    if( ( pContext != NULL ) && ( pContext->pContext != NULL ) )
+    if( ( pNetworkContext != NULL ) && ( pNetworkContext->pBleContext != NULL ) )
     {
-        pMqttBleNetworkContext = ( MqttBleNetworkContext_t * ) pContext->pContext;
+        pMqttBleNetworkContext = ( MqttBleNetworkContext_t * ) pNetworkContext->pBleContext;
         packet.type = IotBleMqtt_GetPacketType( pMqttBleNetworkContext->pChannel );
         IotBleDataTransfer_PeekReceiveBuffer( pMqttBleNetworkContext->pChannel, ( const uint8_t ** ) &packet.pRemainingData, &packet.remainingLength );
 
@@ -1038,10 +1039,10 @@ MQTTStatus_t IotBleMqttTransportAcceptData( const NetworkContext_t * pContext )
  * @param[out] buf A pointer to a buffer where incoming data will be stored.
  * @param[in] bytesToRead number of bytes to read from the transport layer.
  */
-int32_t IotBleMqttTransportReceive( NetworkContext_t * pContext,
+int32_t IotBleMqttTransportReceive( NetworkContext_t * pNetworkContext,
                                     void * buf,
                                     size_t bytesToRead )
 {
-    ( void ) pContext;
+    ( void ) pNetworkContext;
     return ( int32_t ) xStreamBufferReceive( streamBuffer, buf, bytesToRead, pdMS_TO_TICKS( RECV_TIMEOUT_MS ) );
 }

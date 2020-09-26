@@ -156,18 +156,6 @@ typedef struct NetworkContext NetworkContext_t;
 /* @[define_networkcontext] */
 
 /**
- * @brief Definition of the network context for the transport interface
- * implementation that uses Secure Sockets API.
- */
-struct NetworkContext
-{
-    /**
-     * @brief Points to the secure socket context.
-     */
-    void * pContext;
-};
-
-/**
  * @transportcallback
  * @brief Transport interface for receiving data on the network.
  *
