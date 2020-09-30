@@ -50,6 +50,7 @@
 #include "mqtt_config.h"
 #include "mqtt_state.h"
 
+#include "transport_config.h"
 /**
  * @def IotMqtt_Assert( expression )
  * @brief Assertion macro for the MQTT library.

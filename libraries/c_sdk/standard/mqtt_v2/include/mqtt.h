@@ -27,7 +27,6 @@
 #include "mqtt_lightweight.h"
 
 #include "transport_interface.h"
-#include "transport_config.h"
 
 /**
  * @brief Invalid packet identifier.
